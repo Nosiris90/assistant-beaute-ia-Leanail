@@ -3,6 +3,9 @@ export default async function handler(req, res) {
 
   const { answers } = req.body;
 
+// Log temporaire pour verifier la clé API
+console.log('Clé API utilisée :', process.env.OPENAI_API_KEY);
+
   const prompt = `Tu es une experte beauté. Voici les réponses d'une cliente :\n\n${answers.map((a, i) => `Q${i + 1}: ${a}`).join('\n')}\n\nDonne une recommandation personnalisée de soins ou vernis pour ses ongles, en expliquant brièvement pourquoi.`;
 
   try {
