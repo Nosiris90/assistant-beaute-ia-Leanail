@@ -1,71 +1,44 @@
-import { useState } from 'react';
+// pages/index.js
+import Head from 'next/head';
+import Link from 'next/link';
 
 export default function Home() {
-  const [answers, setAnswers] = useState(["", "", "", ""]);
-  const [result, setResult] = useState("");
-
-  const handleChange = (index, value) => {
-    const updated = [...answers];
-    updated[index] = value;
-    setAnswers(updated);
-  };
-
-  const handleSubmit = async () => {
-    const res = await fetch('/api/gpt', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers }),
-    });
-    const data = await res.json();
-    setResult(data.recommendation || "Une erreur est survenue.");
-  };
-
   return (
-    <div style={{ padding: 40, fontFamily: 'sans-serif' }}>
-      <h1>Diagnostic Beauté Ongles</h1>
-      <div>
-        <label>1. Type d'ongles :</label>
-        <select onChange={(e) => handleChange(0, e.target.value)}>
-          <option value="">--Choisir--</option>
-          <option value="Cassants">Cassants</option>
-          <option value="Mous">Mous</option>
-          <option value="Normaux">Normaux</option>
-        </select>
+    <>
+      <Head>
+        <title>Leanail - Assistant Beauté Intelligent</title>
+      </Head>
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #ffe6f0, #fce4ec)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'sans-serif',
+        padding: '2rem',
+        textAlign: 'center'
+      }}>
+        <h1 style={{ fontSize: '2.5rem', color: '#b4005a' }}>Bienvenue chez Leanail</h1>
+        <p style={{ maxWidth: '500px', marginTop: '1rem', fontSize: '1.2rem' }}>
+          Découvrez notre assistant beauté intelligent qui vous recommande les meilleurs soins et vernis selon votre profil.
+        </p>
+        <Link href="/quiz">
+          <button style={{
+            marginTop: '2rem',
+            padding: '1rem 2rem',
+            backgroundColor: '#b4005a',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '30px',
+            fontSize: '1rem',
+            cursor: 'pointer',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+          }}>
+            Lancer mon diagnostic
+          </button>
+        </Link>
       </div>
-      <div>
-        <label>2. Fréquence manucure :</label>
-        <select onChange={(e) => handleChange(1, e.target.value)}>
-          <option value="">--Choisir--</option>
-          <option value="1 fois par semaine">1 fois/semaine</option>
-          <option value="1 fois par mois">1 fois/mois</option>
-        </select>
-      </div>
-      <div>
-        <label>3. Expérience :</label>
-        <select onChange={(e) => handleChange(2, e.target.value)}>
-          <option value="">--Choisir--</option>
-          <option value="Débutante">Débutante</option>
-          <option value="Intermédiaire">Intermédiaire</option>
-          <option value="Avancée">Avancée</option>
-        </select>
-      </div>
-      <div>
-        <label>4. Look souhaité :</label>
-        <select onChange={(e) => handleChange(3, e.target.value)}>
-          <option value="">--Choisir--</option>
-          <option value="Naturel">Naturel</option>
-          <option value="Glamour">Glamour</option>
-          <option value="Créatif">Créatif</option>
-        </select>
-      </div>
-      <button onClick={handleSubmit} style={{ marginTop: 20 }}>Obtenir ma recommandation</button>
-
-      {result && (
-        <div style={{ marginTop: 20 }}>
-          <h2>Recommandation beauté :</h2>
-          <p>{result}</p>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
