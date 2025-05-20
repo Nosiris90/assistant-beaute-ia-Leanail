@@ -1,52 +1,54 @@
-'use client';
-import React, { useState } from 'react';
-import '../public/styles/chatbot.css';
+"use client";
+import { useState } from "react";
+import "../public/styles/chatbot.css";
 
-const Chatbot = () => {
-  const [show, setShow] = useState(false);
+export default function Chatbot() {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
 
   const sendMessage = async () => {
-    const newMessages = [...messages, { from: 'user', text: input }];
-    setMessages(newMessages);
-    setInput('');
+    if (!input.trim()) return;
 
-    const res = await fetch('/api/gpt', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers: [input] }),
+    const userMsg = input;
+    setMessages([...messages, { type: "user", text: userMsg }]);
+    setInput("");
+
+    const res = await fetch("/api/gpt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answers: [userMsg] }),
     });
 
     const data = await res.json();
-    setMessages([...newMessages, { from: 'bot', text: data.recommendation || 'Une erreur est survenue' }]);
+    setMessages((prev) => [...prev, { type: "bot", text: data.recommendation }]);
   };
 
   return (
     <div className="chatbot-container">
-      <button className="chatbot-toggle" onClick={() => setShow(!show)}>
-        {show ? 'Fermer' : 'Assistant Beauté'}
+      <button className="chatbot-toggle" onClick={() => setIsOpen(!isOpen)}>
+        {isOpen ? "Fermer" : "Assistant Leanail"}
       </button>
-      {show && (
+
+      {isOpen && (
         <div className="chatbot-box">
           <div className="chatbot-messages">
             {messages.map((msg, idx) => (
-              <div key={idx} className={chatbot-msg ${msg.from}}>
+              <div key={idx} className={chatbot-msg ${msg.type}}>
                 {msg.text}
               </div>
             ))}
           </div>
           <input
             className="chatbot-input"
+            type="text"
             value={input}
+            placeholder="Pose ta question beauté..."
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Posez votre question..."
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
         </div>
       )}
     </div>
   );
-};
-
-export default Chatbot;
+}
