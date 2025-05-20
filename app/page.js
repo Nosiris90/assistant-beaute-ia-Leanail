@@ -1,6 +1,19 @@
 'use client';
 import { useState } from 'react';
 
+import Chatbot from "../components/Chatbot";
+
+export default function Home() {
+  return (
+    <main>
+      {/* ton contenu principal */}
+      <Chatbot />
+    </main>
+  );
+}
+
+
+
 export default function ChatbotPage() {
   const questions = [
     "Quel est ton principal souci avec tes ongles ? (cassants, mous, dédoublés, secs, aucun)",
@@ -70,15 +83,5 @@ export default function ChatbotPage() {
 
       {loading && <p>Analyse en cours...</p>}
     </div>
-  );
-}
-import Chatbot from "../components/Chatbot";
-
-export default function Home() {
-  return (
-    <main>
-      {/* ton contenu principal */}
-      <Chatbot />
-    </main>
   );
 }
