@@ -1,38 +1,74 @@
-// app/page.js
-import Link from 'next/link';
+'use client';
+import { useState } from 'react';
 
-export default function Home() {
+export default function ChatbotPage() {
+  const questions = [
+    "Quel est ton principal souci avec tes ongles ? (cassants, mous, dédoublés, secs, aucun)",
+    "Quel est ton style préféré ? (naturel, brillant, coloré, glamour, nude)",
+    "À quelle fréquence fais-tu ta manucure ? (1x/semaine, 2x/mois, 1x/mois, rarement)",
+    "Quel est ton niveau d’expertise en manucure ? (débutante, intermédiaire, experte)",
+    "Préféres-tu poser tes ongles seule ou aller en salon ?",
+    "As-tu une préférence de texture ? (gel, semi-permanent, classique, soins uniquement)",
+    "Souhaites-tu des conseils personnalisés ou une simple recommandation de produit ?"
+  ];
+
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState([]);
+  const [input, setInput] = useState('');
+  const [recommendation, setRecommendation] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const updatedAnswers = [...answers, input];
+    setAnswers(updatedAnswers);
+    setInput('');
+
+    if (currentQuestion + 1 < questions.length) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      // Fin du quiz – on appelle l'API OpenAI
+      setLoading(true);
+      const res = await fetch('/api/gpt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers: updatedAnswers })
+      });
+
+      const data = await res.json();
+      setRecommendation(data.recommendation || "Une erreur est survenue.");
+      setLoading(false);
+    }
+  };
+
   return (
-    <main style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #ffe6f0, #fce4ec)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'sans-serif',
-      padding: '2rem',
-      textAlign: 'center'
-    }}>
-      <h1 style={{ fontSize: '2.5rem', color: '#b4005a' }}>Bienvenue chez Leanail</h1>
-      <p style={{ maxWidth: '500px', marginTop: '1rem', fontSize: '1.2rem' }}>
-        Découvrez notre assistant beauté intelligent qui vous recommande les meilleurs soins et vernis selon votre profil.
-      </p>
-      <Link href="/quiz">
-        <button style={{
-          marginTop: '2rem',
-          padding: '1rem 2rem',
-          backgroundColor: '#b4005a',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '30px',
-          fontSize: '1rem',
-          cursor: 'pointer',
-          boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
-        }}>
-          Lancer mon diagnostic
-        </button>
-      </Link>
-    </main>
+    <div style={{ padding: 20, fontFamily: 'sans-serif' }}>
+      <h1>Assistant Beauté Leanail</h1>
+
+      {recommendation ? (
+        <div>
+          <h2>Recommandation beauté :</h2>
+          <p>{recommendation}</p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit}>
+          <p>{questions[currentQuestion]}</p>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ta réponse"
+            required
+            style={{ padding: 10, width: '100%', marginBottom: 10 }}
+          />
+          <button type="submit" style={{ padding: 10 }}>
+            Envoyer
+          </button>
+        </form>
+      )}
+
+      {loading && <p>Analyse en cours...</p>}
+    </div>
   );
 }
