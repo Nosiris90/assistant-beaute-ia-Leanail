@@ -72,3 +72,13 @@ export default function ChatbotPage() {
     </div>
   );
 }
+import Chatbot from "../components/Chatbot";
+
+export default function Home() {
+  return (
+    <main>
+      {/* ton contenu principal */}
+      <Chatbot />
+    </main>
+  );
+}
