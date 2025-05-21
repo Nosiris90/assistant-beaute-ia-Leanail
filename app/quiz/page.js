@@ -1,7 +1,7 @@
 // app/quiz/page.js
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function QuizIA() {
   const questions = [
@@ -62,6 +62,11 @@ export default function QuizIA() {
   const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
+  const [now, setNow] = useState(null)
+
+  useEffect(() => {
+    setNow(Date.now())
+  }, [])
 
   const handleAnswer = (value) => {
     const key = questions[step].key
@@ -83,8 +88,8 @@ En te basant sur ces réponses :
 1) Donne un diagnostic de l’état des ongles.
 2) Recommande 3 produits Leanail adaptés (nom + description).
 3) Donne les conseils d’utilisation précis.
-`;
-    console.log("PROMPT ENVOYÉ À GPT >>>", prompt);
+`
+    console.log("Prompt envoyé à GPT :", prompt);
     setLoading(true)
 
     try {
@@ -106,9 +111,12 @@ En te basant sur ces réponses :
 
   return (
     <div style={{ padding: 20, fontFamily: 'sans-serif', maxWidth: 600, margin: 'auto' }}>
+      <p style={{ fontSize: '14px', color: 'gray' }}>
+        Heure de diagnostic : {now}
+      </p>
       {!result ? (
         <>
-          <h2 style={{ color: '#FFC0CB' }}>{questions[step].text}</h2>
+          <h2 style={{ color: '#FF69B4' }}>{questions[step].text}</h2>
           <div style={{ marginTop: 15 }}>
             {questions[step].options.map((opt) => (
               <button
@@ -119,7 +127,7 @@ En te basant sur ces réponses :
                   margin: '10px 0',
                   padding: '10px 15px',
                   borderRadius: 8,
-                  border: '1px solid #FFC0CB',
+                  border: '1px solid #FF69B4',
                   background: '#fff',
                   cursor: 'pointer',
                   width: '100%',
@@ -134,7 +142,7 @@ En te basant sur ces réponses :
         </>
       ) : (
         <div>
-          <h2 style={{ color: '#FFC0CB' }}>Votre recommandation personnalisée</h2>
+          <h2 style={{ color: '#FF1493' }}>Votre recommandation personnalisée</h2>
           <div style={{ whiteSpace: 'pre-wrap', marginTop: 15 }}>{result}</div>
         </div>
       )}
