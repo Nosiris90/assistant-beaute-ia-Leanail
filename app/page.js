@@ -1,17 +1,16 @@
 'use client';
 import { useState } from 'react';
 
-import Chatbot from "../components/chatbot.js";
+//import Chatbot from "../components/chatbot.js";
 
-export default function Home() {
-  return (
-    <main>
-      {/* ton contenu principal */}
-      <Chatbot />
-    </main>
-  );
-}
-
+//export default function Home() {
+ // return (
+  //  <main>
+    //  {/* ton contenu principal */}
+    //  <Chatbot />
+  //  </main>
+ // );
+//}
 
 
 export default function ChatbotPage() {

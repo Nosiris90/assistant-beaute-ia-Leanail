@@ -1,85 +1,139 @@
-'use client';
-import { useState } from 'react';
+// app/quiz/page.js
+'use client'
 
-export default function QuizPage() {
-  const [answers, setAnswers] = useState({
-    ongle: '',
-    frequence: '',
-    style: '',
-    habilete: ''
-  });
-  const [recommendation, setRecommendation] = useState('');
+import { useState } from 'react'
 
-  const handleChange = (e) => {
-    setAnswers({ ...answers, [e.target.name]: e.target.value });
-  };
+export default function QuizIA() {
+  const questions = [
+    { 
+      key: 'general', 
+      text: "Q1. Comment décririez-vous l’état général de vos ongles ?",
+      options: [
+        { label: "A) Cassants / dédoublés", value: 'A' },
+        { label: "B) Rougeurs / inflammations", value: 'B' },
+        { label: "C) Jaunis / ternes", value: 'C' },
+        { label: "D) Exposés à l’eau / produits", value: 'D' },
+        { label: "E) Pâles / bleutés / taches", value: 'E' },
+      ]
+    },
+    {
+      key: 'pain',
+      text: "Q2. Ressentez-vous douleurs, démangeaisons ou inflammations autour des ongles ?",
+      options: [
+        { label: "Oui", value: 'yes' },
+        { label: "Non", value: 'no' }
+      ]
+    },
+    {
+      key: 'stries',
+      text: "Q3. Avez-vous remarqué des stries, décolorations ou déformations ?",
+      options: [
+        { label: "Oui", value: 'yes' },
+        { label: "Non", value: 'no' }
+      ]
+    },
+    {
+      key: 'aggressive',
+      text: "Q4. Utilisez-vous souvent des produits agressifs (acétone, colle…) ?",
+      options: [
+        { label: "Oui", value: 'yes' },
+        { label: "Non", value: 'no' }
+      ]
+    },
+    {
+      key: 'habits',
+      text: "Q5. Avez-vous des habitudes (rongement, grattage) ?",
+      options: [
+        { label: "Oui", value: 'yes' },
+        { label: "Non", value: 'no' }
+      ]
+    },
+    {
+      key: 'nutrition',
+      text: "Q6. Voulez-vous un conseil global santé & nutrition ?",
+      options: [
+        { label: "Oui", value: 'yes' },
+        { label: "Non", value: 'no' }
+      ]
+    }
+  ]
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const res = await fetch('/api/gpt', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers: Object.values(answers) })
-    });
-    const data = await res.json();
-    setRecommendation(data.recommendation || 'Une erreur est survenue');
-  };
+  const [step, setStep] = useState(0)
+  const [answers, setAnswers] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState('')
+
+  const handleAnswer = (value) => {
+    const key = questions[step].key
+    setAnswers({ ...answers, [key]: value })
+    if (step + 1 < questions.length) {
+      setStep(step + 1)
+    } else {
+      // dernier step -> appeler l'API OpenAI
+      generateRecommendation({ ...answers, [key]: value })
+    }
+  }
+
+  const generateRecommendation = async (allAnswers) => {
+    setLoading(true)
+    const prompt = `
+Tu es une experte beauté. Voici les réponses de la cliente :
+${questions.map((q,i) => `Q${i+1} (${q.key}): ${allAnswers[q.key]}`).join('\n')}
+
+En te basant sur ces réponses, donne :
+1) Un diagnostic synthétique de l’état des ongles.
+2) Une liste de 3 produits Leanail recommandés (nom + brève description).
+3) Des conseils d’utilisation précis.
+`
+    try {
+      const res = await fetch('/api/gpt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, model: 'gpt-4-turbo' })
+      })
+      const { recommendation } = await res.json()
+      setResult(recommendation)
+    } catch (e) {
+      setResult("Une erreur est survenue, merci de réessayer plus tard.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1 style={{ color: '#b4005a' }}>Diagnostic Beauté IA</h1>
-      <form onSubmit={handleSubmit} style={{ maxWidth: 600 }}>
-        <label>Quel est votre type d'ongles ?</label>
-        <select name="ongle" onChange={handleChange} required>
-          <option value="">--Choisir--</option>
-          <option value="Cassants">Cassants</option>
-          <option value="Mous">Mous</option>
-          <option value="Normaux">Normaux</option>
-        </select>
-
-        <label>À quelle fréquence faites-vous votre manucure ?</label>
-        <select name="frequence" onChange={handleChange} required>
-          <option value="">--Choisir--</option>
-          <option value="Jamais">Jamais</option>
-          <option value="1 fois/mois">1 fois/mois</option>
-          <option value="Chaque semaine">Chaque semaine</option>
-        </select>
-
-        <label>Quel style d’ongles préférez-vous ?</label>
-        <select name="style" onChange={handleChange} required>
-          <option value="">--Choisir--</option>
-          <option value="Naturel">Naturel</option>
-          <option value="Glamour">Glamour</option>
-          <option value="Tendance / Artistique">Tendance / Artistique</option>
-        </select>
-
-        <label>Quel est votre niveau d’habileté ?</label>
-        <select name="habilete" onChange={handleChange} required>
-          <option value="">--Choisir--</option>
-          <option value="Débutante">Débutante</option>
-          <option value="Je me débrouille">Je me débrouille</option>
-          <option value="Pro/experte">Pro/experte</option>
-        </select>
-
-        <button type="submit" style={{
-          marginTop: '1rem',
-          padding: '1rem 2rem',
-          backgroundColor: '#b4005a',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '30px',
-          cursor: 'pointer'
-        }}>
-          Obtenir ma recommandation
-        </button>
-      </form>
-
-      {recommendation && (
-        <div style={{ marginTop: '2rem', background: '#fff0f5', padding: '1rem', borderRadius: '12px' }}>
-          <h2>Recommandation beauté :</h2>
-          <p>{recommendation}</p>
+    <div style={{ padding: 20, fontFamily: 'sans-serif', maxWidth: 600, margin: 'auto' }}>
+      {!result ? (
+        <>
+          <h2 style={{ color: '#FFC0CB' }}>{questions[step].text}</h2>
+          <div style={{ marginTop: 15 }}>
+            {questions[step].options.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => handleAnswer(opt.value)}
+                style={{
+                  display: 'block',
+                  margin: '10px 0',
+                  padding: '10px 15px',
+                  borderRadius: 8,
+                  border: '1px solid #FF69B4',
+                  background: '#fff',
+                  cursor: 'pointer',
+                  width: '100%',
+                  textAlign: 'left'
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {loading && <p>Analyse en cours…</p>}
+        </>
+      ) : (
+        <div>
+          <h2 style={{ color: '#FF1493' }}>Votre recommandation personnalisée</h2>
+          <div style={{ whiteSpace: 'pre-wrap', marginTop: 15 }}>{result}</div>
         </div>
       )}
-    </main>
-  );
+    </div>
+  )
 }
