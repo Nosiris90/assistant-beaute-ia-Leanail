@@ -5,8 +5,8 @@ import { useState } from 'react'
 
 export default function QuizIA() {
   const questions = [
-    { 
-      key: 'general', 
+    {
+      key: 'general',
       text: "Q1. Comment décririez-vous l’état général de vos ongles ?",
       options: [
         { label: "A) Cassants / dédoublés", value: 'A' },
@@ -65,36 +65,40 @@ export default function QuizIA() {
 
   const handleAnswer = (value) => {
     const key = questions[step].key
-    setAnswers({ ...answers, [key]: value })
+    setAnswers(prev => ({ ...prev, [key]: value }))
+
     if (step + 1 < questions.length) {
       setStep(step + 1)
     } else {
-      // dernier step -> appeler l'API OpenAI
       generateRecommendation({ ...answers, [key]: value })
     }
   }
 
   const generateRecommendation = async (allAnswers) => {
-    setLoading(true)
     const prompt = `
 Tu es une experte beauté. Voici les réponses de la cliente :
-${questions.map((q,i) => `Q${i+1} (${q.key}): ${allAnswers[q.key]}`).join('\n')}
+${questions.map((q, i) => `Q${i + 1}: ${allAnswers[q.key] || 'Non répondu'}`).join('\n')}
 
-En te basant sur ces réponses, donne :
-1) Un diagnostic synthétique de l’état des ongles.
-2) Une liste de 3 produits Leanail recommandés (nom + brève description).
-3) Des conseils d’utilisation précis.
+En te basant sur ces réponses :
+1) Donne un diagnostic de l’état des ongles.
+2) Recommande 3 produits Leanail adaptés (nom + description).
+3) Donne les conseils d’utilisation précis.
 `
+    console.log("Prompt envoyé à GPT :", prompt);
+    setLoading(true)
+
     try {
       const res = await fetch('/api/gpt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, model: 'gpt-4-turbo' })
       })
+
       const { recommendation } = await res.json()
       setResult(recommendation)
-    } catch (e) {
-      setResult("Une erreur est survenue, merci de réessayer plus tard.")
+    } catch (err) {
+      console.error('Erreur API GPT :', err)
+      setResult("Une erreur est survenue lors de la génération de la recommandation.")
     } finally {
       setLoading(false)
     }
@@ -115,7 +119,7 @@ En te basant sur ces réponses, donne :
                   margin: '10px 0',
                   padding: '10px 15px',
                   borderRadius: 8,
-                  border: '1px solid #FF69B4',
+                  border: '1px solid #FFC0CB',
                   background: '#fff',
                   cursor: 'pointer',
                   width: '100%',
@@ -130,7 +134,7 @@ En te basant sur ces réponses, donne :
         </>
       ) : (
         <div>
-          <h2 style={{ color: '#FF1493' }}>Votre recommandation personnalisée</h2>
+          <h2 style={{ color: '#FFC0CB' }}>Votre recommandation personnalisée</h2>
           <div style={{ whiteSpace: 'pre-wrap', marginTop: 15 }}>{result}</div>
         </div>
       )}
