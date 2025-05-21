@@ -1,7 +1,7 @@
 // app/quiz/page.js
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 export default function QuizIA() {
   const questions = [
@@ -84,7 +84,6 @@ En te basant sur ces réponses :
 2) Recommande 3 produits Leanail adaptés (nom + description).
 3) Donne les conseils d’utilisation précis.
 `
-    console.log("Prompt envoyé à GPT :", prompt);
     setLoading(true)
 
     try {
@@ -98,44 +97,46 @@ En te basant sur ces réponses :
       setResult(recommendation)
     } catch (err) {
       console.error('Erreur API GPT :', err)
-      setResult("Une erreur est survenue lors de la génération de la recommandation.")
+      setResult("Une erreur est survenue")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div style={{ padding: 20, fontFamily: 'sans-serif', maxWidth: 600, margin: 'auto' }}>
+    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: 40, fontFamily: 'sans-serif', color: '#000' }}>
       {!result ? (
         <>
-          <h2 style={{ color: '#FF69B4' }}>{questions[step].text}</h2>
-          <div style={{ marginTop: 15 }}>
+          <h2 style={{ color: '#000', fontSize: '1.8rem', marginBottom: 20 }}>{questions[step].text}</h2>
+          <div style={{ marginTop: 10 }}>
             {questions[step].options.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => handleAnswer(opt.value)}
                 style={{
                   display: 'block',
-                  margin: '10px 0',
-                  padding: '10px 15px',
+                  margin: '10px auto',
+                  padding: '12px 20px',
                   borderRadius: 8,
-                  border: '1px solid #FF69B4',
-                  background: '#fff',
+                  border: '1px solid #FFC0CB',
+                  background: '#FFC0CB',
+                  color: '#000',
                   cursor: 'pointer',
                   width: '100%',
-                  textAlign: 'left'
+                  maxWidth: 400,
+                  fontSize: '1rem'
                 }}
               >
                 {opt.label}
               </button>
             ))}
           </div>
-          {loading && <p>Analyse en cours…</p>}
+          {loading && <p style={{ marginTop: 20 }}>Analyse en cours…</p>}
         </>
       ) : (
-        <div>
-          <h2 style={{ color: '#FF1493' }}>Votre recommandation personnalisée</h2>
-          <div style={{ whiteSpace: 'pre-wrap', marginTop: 15 }}>{result}</div>
+        <div style={{ marginTop: 30 }}>
+          <h2 style={{ color: '#000000', fontSize: '1.8rem' }}>Votre recommandation personnalisée</h2>
+          <div style={{ whiteSpace: 'pre-wrap', marginTop: 20 }}>{result}</div>
         </div>
       )}
     </div>
