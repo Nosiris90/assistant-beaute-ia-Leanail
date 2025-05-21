@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     console.error("❌ Clé OpenAI manquante dans les variables d'environnement.");
-    return res.status(500).json({ error: "Clé OpenAI non définie." });
+    return res.status(500).json({ error: "Clé OpenAI non définie dans l'environnement." });
   }
 
   // Vérification du prompt
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   console.log("🧠 Prompt reçu :", prompt.slice(0, 200) + '...');
-  console.log("🔐 Utilisation de modèle :", model || 'gpt-4-turbo');
+  console.log("🔐 Utilisation du modèle :", model || 'gpt-4-turbo');
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -33,17 +33,26 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    if (!response.ok || !data.choices?.[0]?.message?.content) {
-      console.error('❌ Erreur API OpenAI :', data);
-      return res.status(500).json({ error: data.error?.message || 'Erreur API OpenAI' });
+    if (!response.ok) {
+      console.error('❌ Réponse OpenAI invalide :', data);
+      return res.status(500).json({
+        error: data.error?.message || 'Erreur API OpenAI',
+        details: data,
+      });
     }
 
-    const recommendation = data.choices[0].message.content;
+    const content = data.choices?.[0]?.message?.content;
+
+    if (!content) {
+      console.error('❌ Réponse GPT vide ou incomplète :', data);
+      return res.status(500).json({ error: 'Contenu GPT vide.' });
+    }
+
     console.log("✅ Recommandation générée");
-    res.status(200).json({ recommendation });
+    res.status(200).json({ recommendation: content });
 
   } catch (err) {
-    console.error('❌ Erreur serveur GPT :', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('❌ Erreur serveur :', err);
+    res.status(500).json({ error: 'Erreur serveur GPT', message: err.message });
   }
 }
