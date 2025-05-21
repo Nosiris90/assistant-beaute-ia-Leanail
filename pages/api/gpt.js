@@ -13,7 +13,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: model || 'gpt-4-turbo',
+        model: model || 'gpt-4',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
       }),
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok || !data.choices?.[0]?.message?.content) {
-      console.error('OpenAI error:', data);
+      console.error('Erreur OpenAI :', data);
       throw new Error(data.error?.message || 'Erreur API');
     }
 
