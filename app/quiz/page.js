@@ -63,10 +63,12 @@ export default function QuizIA() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
   const [now, setNow] = useState(null)
+const [hydrated, setHydrated] = useState(false)
 
-  useEffect(() => {
-    setNow(Date.now())
-  }, [])
+useEffect(() => {
+  setHydrated(true)
+  setNow(Date.now())
+}, [])
 
   const handleAnswer = (value) => {
     const key = questions[step].key
@@ -111,9 +113,12 @@ En te basant sur ces réponses :
 
   return (
     <div style={{ padding: 20, fontFamily: 'sans-serif', maxWidth: 600, margin: 'auto' }}>
-      <p style={{ fontSize: '14px', color: 'gray' }}>
-        Heure de diagnostic : {now}
-      </p>
+      <{hydrated && (
+  <p style={{ fontSize: '14px', color: 'gray' }}>
+    Heure de diagnostic : {now}
+  </p>
+)}
+
       {!result ? (
         <>
           <h2 style={{ color: '#FF69B4' }}>{questions[step].text}</h2>
