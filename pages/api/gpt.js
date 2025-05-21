@@ -1,6 +1,9 @@
 export default async function handler(req, res) {
   const { prompt, model } = req.body;
 
+  // 🔍 LOG ICI POUR DEBUG
+  console.log("🔐 Clé OpenAI chargée (backend):", process.env.OPENAI_API_KEY);
+
   if (!prompt || typeof prompt !== 'string') {
     return res.status(400).json({ error: 'Prompt manquant ou invalide.' });
   }
