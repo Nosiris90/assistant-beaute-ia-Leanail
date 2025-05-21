@@ -83,8 +83,8 @@ En te basant sur ces réponses :
 1) Donne un diagnostic de l’état des ongles.
 2) Recommande 3 produits Leanail adaptés (nom + description).
 3) Donne les conseils d’utilisation précis.
-`
-    console.log("Prompt envoyé à GPT :", prompt);
+`;
+    console.log("PROMPT ENVOYÉ À GPT >>>", prompt);
     setLoading(true)
 
     try {
