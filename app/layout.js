@@ -1,13 +1,15 @@
 // app/layout.js
+import './globals.css'
+
 export const metadata = {
-  title: 'Leanail',
-  description: 'Diagnostic Beauté Des Ongles Leanail avec notre Coach Lea',
+  title: 'Leanail - Assistant Beauté IA',
+  description: 'Diagnostic intelligent et recommandations personnalisées pour vos ongles avec Leanail.',
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="fr">
-      <body style={{ margin: 0, padding: 0 }}>{children}</body>
+      <body>{children}</body>
     </html>
   )
 }
