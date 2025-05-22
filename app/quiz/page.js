@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function QuizIA() {
   const questions = [
@@ -104,41 +105,53 @@ En te basant sur ces réponses :
   }
 
   return (
-    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: 40, fontFamily: 'sans-serif', color: '#000' }}>
-      {!result ? (
-        <>
-          <h2 style={{ color: '#000', fontSize: '1.8rem', marginBottom: 20 }}>{questions[step].text}</h2>
-          <div style={{ marginTop: 10 }}>
-            {questions[step].options.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => handleAnswer(opt.value)}
-                style={{
-                  display: 'block',
-                  margin: '10px auto',
-                  padding: '12px 20px',
-                  borderRadius: 8,
-                  border: '1px solid #FFC0CB',
-                  background: '#FFC0CB',
-                  color: '#000',
-                  cursor: 'pointer',
-                  width: '100%',
-                  maxWidth: 400,
-                  fontSize: '1rem'
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
+    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: 'sans-serif', color: '#000' }}>
+      {/* HEADER NAVIGATION STICKY */}
+      <header style={{ position: 'sticky', top: 0, backgroundColor: '#ffffff', zIndex: 1000, padding: '20px 0', borderBottom: '1px solid #eaeaea' }}>
+        <nav style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 40 }}>
+          <div style={{ fontWeight: 'bold', fontSize: '1.5rem', color: '#FF69B4' }}>Leanail</div>
+          <Link href="/" style={{ color: '#000', textDecoration: 'none', fontWeight: 'bold' }}>Accueil</Link>
+          <Link href="/quiz" style={{ color: '#000', textDecoration: 'none', fontWeight: 'bold' }}>Diagnostic</Link>
+        </nav>
+      </header>
+
+      <main style={{ padding: 40 }}>
+        {!result ? (
+          <>
+            <h2 style={{ color: '#000', fontSize: '1.8rem', marginBottom: 20 }}>{questions[step].text}</h2>
+            <div style={{ marginTop: 10 }}>
+              {questions[step].options.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => handleAnswer(opt.value)}
+                  style={{
+                    display: 'block',
+                    margin: '10px auto',
+                    padding: '12px 20px',
+                    borderRadius: 8,
+                    border: '1px solid #FFC0CB',
+                    background: '#FFC0CB',
+                    color: '#000',
+                    cursor: 'pointer',
+                    width: '100%',
+                    maxWidth: 400,
+                    fontSize: '1rem'
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {loading && <p style={{ marginTop: 20 }}>Analyse en cours…</p>}
+          </>
+        ) : (
+          <div style={{ marginTop: 30 }}>
+            <h2 style={{ color: '#000000', fontSize: '1.8rem' }}>Votre recommandation personnalisée</h2>
+            <div style={{ whiteSpace: 'pre-wrap', marginTop: 20 }}>{result}</div>
           </div>
-          {loading && <p style={{ marginTop: 20 }}>Analyse en cours…</p>}
-        </>
-      ) : (
-        <div style={{ marginTop: 30 }}>
-          <h2 style={{ color: '#000000', fontSize: '1.8rem' }}>Votre recommandation personnalisée</h2>
-          <div style={{ whiteSpace: 'pre-wrap', marginTop: 20 }}>{result}</div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   )
 }
+
