@@ -9,6 +9,7 @@ export default function QuizIA() {
     {
       key: 'structurel',
       text: "Q1. Rencontrez-vous des problèmes structurels ou de fragilité des ongles ?",
+      icon: "🧱",
       options: [
         { label: "Cassants", value: 'cassants' },
         { label: "Mous / flexibles", value: 'mous' },
@@ -22,6 +23,7 @@ export default function QuizIA() {
     {
       key: 'infectieux',
       text: "Q2. Avez-vous remarqué un problème de type infectieux ou pathologique ?",
+      icon: "🦠",
       options: [
         { label: "Mycose / champignons", value: 'mycose' },
         { label: "Ongles verdâtres (infection bactérienne)", value: 'bacterie' },
@@ -35,6 +37,7 @@ export default function QuizIA() {
     {
       key: 'esthetique',
       text: "Q3. Vos ongles présentent-ils un souci esthétique ?",
+      icon: "🎨",
       options: [
         { label: "Jaunis / ternes", value: 'jaunis' },
         { label: "Taches blanches", value: 'blanches' },
@@ -47,6 +50,7 @@ export default function QuizIA() {
     {
       key: 'habitudes',
       text: "Q4. Vos habitudes ou votre environnement affectent-ils vos ongles ?",
+      icon: "☠️",
       options: [
         { label: "Je ronge mes ongles (onychophagie)", value: 'rongement' },
         { label: "Je gratte / arrache mes cuticules", value: 'grattage' },
@@ -59,6 +63,7 @@ export default function QuizIA() {
     {
       key: 'autres',
       text: "Q5. Avez-vous remarqué des signes inhabituels liés à votre santé ?",
+      icon: "⚠️",
       options: [
         { label: "Ongles bleutés", value: 'bleutes' },
         { label: "Ongles très pâles", value: 'pales' },
@@ -113,9 +118,14 @@ En te basant sur ces réponses :
     }
   }
 
+  const restartQuiz = () => {
+    setStep(0)
+    setAnswers({})
+    setResult('')
+  }
+
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: 'sans-serif', color: '#000' }}>
-      {/* HEADER NAVIGATION STICKY */}
       <header style={{ position: 'sticky', top: 0, backgroundColor: '#ffffff', zIndex: 1000, padding: '20px 0', borderBottom: '1px solid #eaeaea' }}>
         <nav style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 40 }}>
           <div style={{ fontWeight: 'bold', fontSize: '1.5rem', color: '#FF69B4' }}>Leanail</div>
@@ -127,7 +137,9 @@ En te basant sur ces réponses :
       <main style={{ padding: 40 }}>
         {!result ? (
           <>
-            <h2 style={{ color: '#000', fontSize: '1.8rem', marginBottom: 20 }}>{questions[step].text}</h2>
+            <h2 style={{ color: '#000', fontSize: '1.8rem', marginBottom: 20 }}>
+              <span>{questions[step].icon}</span> {questions[step].text}
+            </h2>
             <div style={{ marginTop: 10 }}>
               {questions[step].options.map((opt) => (
                 <button
@@ -154,9 +166,25 @@ En te basant sur ces réponses :
             {loading && <p style={{ marginTop: 20 }}>Analyse en cours…</p>}
           </>
         ) : (
-          <div style={{ marginTop: 30 }}>
+          <div style={{ marginTop: 30, textAlign: 'center' }}>
             <h2 style={{ color: '#000000', fontSize: '1.8rem' }}>Votre recommandation personnalisée</h2>
             <div style={{ whiteSpace: 'pre-wrap', marginTop: 20 }}>{result}</div>
+            <button
+              onClick={restartQuiz}
+              style={{
+                marginTop: 30,
+                padding: '10px 24px',
+                backgroundColor: '#FFC0CB',
+                color: '#000',
+                border: '1px solid #FFC0CB',
+                borderRadius: 8,
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              Recommencer le diagnostic
+            </button>
           </div>
         )}
       </main>
