@@ -7,54 +7,63 @@ import Link from 'next/link'
 export default function QuizIA() {
   const questions = [
     {
-      key: 'general',
-      text: "Q1. Comment décririez-vous l’état général de vos ongles ?",
+      key: 'structurel',
+      text: "Q1. Rencontrez-vous des problèmes structurels ou de fragilité des ongles ?",
       options: [
-        { label: "A) Cassants / dédoublés", value: 'A' },
-        { label: "B) Rougeurs / inflammations", value: 'B' },
-        { label: "C) Jaunis / ternes", value: 'C' },
-        { label: "D) Exposés à l’eau / produits", value: 'D' },
-        { label: "E) Pâles / bleutés / taches", value: 'E' },
+        { label: "Cassants", value: 'cassants' },
+        { label: "Mous / flexibles", value: 'mous' },
+        { label: "Secs / déshydratés", value: 'secs' },
+        { label: "Dédoublés", value: 'dedoubles' },
+        { label: "Striés verticalement", value: 'stries' },
+        { label: "Ongles fins / qui poussent lentement", value: 'fins' },
+        { label: "Non", value: 'non_structurel' },
       ]
     },
     {
-      key: 'pain',
-      text: "Q2. Ressentez-vous douleurs, démangeaisons ou inflammations autour des ongles ?",
+      key: 'infectieux',
+      text: "Q2. Avez-vous remarqué un problème de type infectieux ou pathologique ?",
       options: [
-        { label: "Oui", value: 'yes' },
-        { label: "Non", value: 'no' }
+        { label: "Mycose / champignons", value: 'mycose' },
+        { label: "Ongles verdâtres (infection bactérienne)", value: 'bacterie' },
+        { label: "Ongles incarnés", value: 'incarnes' },
+        { label: "Décollement de l’ongle", value: 'decollement' },
+        { label: "Psoriasis unguéal ou eczéma", value: 'psoriasis' },
+        { label: "Ligne de Beau ou anomalie transversale", value: 'beau' },
+        { label: "Non", value: 'non_infectieux' },
       ]
     },
     {
-      key: 'stries',
-      text: "Q3. Avez-vous remarqué des stries, décolorations ou déformations ?",
+      key: 'esthetique',
+      text: "Q3. Vos ongles présentent-ils un souci esthétique ?",
       options: [
-        { label: "Oui", value: 'yes' },
-        { label: "Non", value: 'no' }
+        { label: "Jaunis / ternes", value: 'jaunis' },
+        { label: "Taches blanches", value: 'blanches' },
+        { label: "Coloration inégale", value: 'taches' },
+        { label: "Ongles trop courts ou rongés", value: 'ronges' },
+        { label: "Déformés (cuillère, bombés…)", value: 'deformes' },
+        { label: "Non", value: 'non_esthetique' },
       ]
     },
     {
-      key: 'aggressive',
-      text: "Q4. Utilisez-vous souvent des produits agressifs (acétone, colle…) ?",
+      key: 'habitudes',
+      text: "Q4. Vos habitudes ou votre environnement affectent-ils vos ongles ?",
       options: [
-        { label: "Oui", value: 'yes' },
-        { label: "Non", value: 'no' }
+        { label: "Je ronge mes ongles (onychophagie)", value: 'rongement' },
+        { label: "Je gratte / arrache mes cuticules", value: 'grattage' },
+        { label: "Je suis souvent en contact avec l’eau ou des produits détergents", value: 'eau' },
+        { label: "J’utilise beaucoup d’acétone ou produits abrasifs", value: 'acetone' },
+        { label: "Je fais souvent des poses de faux ongles", value: 'faux_ongles' },
+        { label: "Non", value: 'non_habitudes' },
       ]
     },
     {
-      key: 'habits',
-      text: "Q5. Avez-vous des habitudes (rongement, grattage) ?",
+      key: 'autres',
+      text: "Q5. Avez-vous remarqué des signes inhabituels liés à votre santé ?",
       options: [
-        { label: "Oui", value: 'yes' },
-        { label: "Non", value: 'no' }
-      ]
-    },
-    {
-      key: 'nutrition',
-      text: "Q6. Voulez-vous un conseil global santé & nutrition ?",
-      options: [
-        { label: "Oui", value: 'yes' },
-        { label: "Non", value: 'no' }
+        { label: "Ongles bleutés", value: 'bleutes' },
+        { label: "Ongles très pâles", value: 'pales' },
+        { label: "Présence de stries noires ou taches sombres", value: 'stries_noires' },
+        { label: "Non", value: 'non_autres' },
       ]
     }
   ]
@@ -134,7 +143,7 @@ En te basant sur ces réponses :
                     color: '#000',
                     cursor: 'pointer',
                     width: '100%',
-                    maxWidth: 400,
+                    maxWidth: 500,
                     fontSize: '1rem'
                   }}
                 >
@@ -154,4 +163,3 @@ En te basant sur ces réponses :
     </div>
   )
 }
-
