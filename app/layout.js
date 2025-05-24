@@ -1,5 +1,5 @@
 // app/layout.js
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
+import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/nextjs'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
@@ -20,6 +20,8 @@ export default function RootLayout({ children }) {
             <div>
               <SignedIn>
                 <UserButton afterSignOutUrl="/" />
+                {/* Affiche le prénom si l'utilisateur est connecté */}
+                <UserDisplayName />
               </SignedIn>
               <SignedOut>
                 <SignInButton mode="modal">
@@ -35,4 +37,10 @@ export default function RootLayout({ children }) {
       </html>
     </ClerkProvider>
   )
+}
+
+// Composant personnalisé pour afficher le prénom
+function UserDisplayName() {
+  const { user } = useUser()
+  return user ? <span style={{ marginLeft: '1rem', fontWeight: 'bold' }}>{user.firstName}</span> : null
 }
