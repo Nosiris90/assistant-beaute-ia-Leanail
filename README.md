@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🩷 Leanail — Diagnostic Beauté Intelligent (Next.js + Clerk + Vercel)
 
-## Getting Started
+Ce projet est un assistant beauté intelligent développé avec **Next.js App Router**, **Clerk** pour l'authentification (Google, Facebook, TikTok…), et déployé sur **Vercel**.
 
-First, run the development server:
+---
+
+## 🚀 Lancer le projet en local
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Puis ouvre [http://localhost:3000](http://localhost:3000) dans ton navigateur.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Fonctionnalités clés
 
-## Learn More
+- 🧠 Quiz intelligent avec recommandations IA (GPT-4 Turbo)
+- 🔐 Authentification Clerk (email + réseaux sociaux)
+- 📧 Envoi d'emails (bientôt via Resend ou SendGrid)
+- 🗂️ Enregistrement des données (Google Sheets ou Shopify)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔐 Intégration Clerk + Middleware
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### ✅ Middleware Clerk (`middleware.js` à la racine) :
+```js
+import { clerkMiddleware } from '@clerk/nextjs/server'
 
-## Deploy on Vercel
+export default clerkMiddleware()
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+export const config = {
+  matcher: ["/((?!.*\\..*|_next|sign-in|sign-up|favicon.ico|api/public).*)"],
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### ✅ Variables d'environnement (à définir sur Vercel et en local dans `.env.local`) :
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+CLERK_SECRET_KEY=sk_live_...
+CLERK_FRONTEND_API=clerk.ton-projet.clerk.accounts.dev
+```
+
+⚠️ Supprimer tous les `console.log()` dans `middleware.js` pour éviter les erreurs 500 sur Vercel.
+
+---
+
+## 🌐 Déploiement sur Vercel
+
+1. Push sur GitHub
+2. Connecte le projet à Vercel
+3. Configure les variables d'environnement dans **Project > Settings > Environment Variables** (Production et Preview)
+4. Déploie 🚀
+
+---
+
+## ✨ Ressources utiles
+- [Documentation Clerk](https://clerk.com/docs)
+- [Docs Next.js](https://nextjs.org/docs)
+- [Déploiement Next.js sur Vercel](https://nextjs.org/docs/app/building-your-application/deploying)
+
+---
+
+💅 **Leanail** — la beauté intelligente au bout des doigts ✨
