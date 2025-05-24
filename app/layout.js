@@ -1,7 +1,8 @@
-// app/layout.js
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/nextjs'
+import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import UserDisplayName from '../components/UserDisplayName'
+import Link from 'next/link'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,11 +18,12 @@ export default function RootLayout({ children }) {
         <body className={inter.className}>
           <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', background: '#fff', borderBottom: '1px solid #eee' }}>
             <div style={{ fontWeight: 'bold', fontSize: '1.5rem', color: '#FF69B4' }}>Leanail</div>
-            <div>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <Link href="/" style={{ color: '#000', textDecoration: 'none', fontWeight: 'bold' }}>Accueil</Link>
+              <Link href="/quiz" style={{ color: '#000', textDecoration: 'none', fontWeight: 'bold' }}>Diagnostic</Link>
               <SignedIn>
-                <UserButton afterSignOutUrl="/" />
-                {/* Affiche le prénom si l'utilisateur est connecté */}
                 <UserDisplayName />
+                <UserButton afterSignOutUrl="/" />
               </SignedIn>
               <SignedOut>
                 <SignInButton mode="modal">
@@ -37,10 +39,4 @@ export default function RootLayout({ children }) {
       </html>
     </ClerkProvider>
   )
-}
-
-// Composant personnalisé pour afficher le prénom
-function UserDisplayName() {
-  const { user } = useUser()
-  return user ? <span style={{ marginLeft: '1rem', fontWeight: 'bold' }}>{user.firstName}</span> : null
 }
