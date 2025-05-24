@@ -81,10 +81,15 @@ export default function QuizIA() {
     }
   ]
 
-  if (!isLoaded) return <p>Chargement...</p>
+  if (!isLoaded) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Chargement...</p>
   if (!isSignedIn) return <RedirectToSignIn redirectUrl="/quiz" />
   if (user && user.emailAddresses[0]?.verification?.status !== 'verified') {
-    return <p style={{ textAlign: 'center', marginTop: '100px', color: 'red' }}>🔒 Veuillez vérifier votre email pour accéder au diagnostic.</p>
+    return (
+      <div style={{ textAlign: 'center', marginTop: '100px', padding: 20 }}>
+        <p style={{ fontSize: '1.2rem', color: 'red' }}>🔒 Vérifiez votre adresse email pour accéder au diagnostic.</p>
+        <p>Consultez votre boîte email et confirmez votre compte.</p>
+      </div>
+    )
   }
 
   const handleAnswer = (value) => {
@@ -96,10 +101,7 @@ export default function QuizIA() {
 
   const generateRecommendation = async (allAnswers) => {
     setLoading(true)
-    const prompt = `Diagnostic Leanail pour ${user.fullName || user.username} (${user.emailAddresses[0]?.emailAddress}):
-${questions.map((q,i)=>`Q${i+1}: ${allAnswers[q.key] || 'Non répondu'}`).join('\n')}
-Fournis un diagnostic personnalisé et 3 produits recommandés.`
-
+    const prompt = `Diagnostic Leanail pour ${user.fullName || user.username} (${user.emailAddresses[0]?.emailAddress}):\n${questions.map((q, i) => `Q${i + 1}: ${allAnswers[q.key] || 'Non répondu'}`).join('\n')}\nDonne un diagnostic personnalisé et 3 produits recommandés.`
     try {
       const res = await fetch('/api/gpt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, model: 'gpt-4-turbo' }) })
       const { recommendation } = await res.json()
@@ -108,7 +110,7 @@ Fournis un diagnostic personnalisé et 3 produits recommandés.`
       await fetch('/api/save-sheet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userInfo: { name: user.fullName || user.username, email: user.emailAddresses[0]?.emailAddress }, answers: allAnswers, result: recommendation }) })
     } catch (err) {
       console.error(err)
-      setResult("Une erreur est survenue")
+      setResult("Erreur lors de la génération")
     } finally {
       setLoading(false)
     }
@@ -117,26 +119,31 @@ Fournis un diagnostic personnalisé et 3 produits recommandés.`
   const restart = () => { setStep(-1); setAnswers({}); setResult('') }
 
   return (
-    <div style={{ padding: 20, fontFamily: 'sans-serif', background: '#fff5f9', minHeight: '100vh' }}>
-      <Link href="/">🏠 Accueil</Link>
-      <h1 style={{ color: '#FF69B4' }}>Diagnostic Leanail</h1>
-      {step === -1 && !result && <button onClick={() => setStep(0)} style={{ padding: '12px 24px', background: '#FFC0CB', borderRadius: 8, border: 'none', fontWeight: 'bold' }}>Commencer</button>}
-      {step >= 0 && !result && (
-        <>
-          <h3>{questions[step].icon} {questions[step].text}</h3>
-          {questions[step].options.map(opt => (
-            <button key={opt.value} onClick={() => handleAnswer(opt.value)} style={{ display: 'block', margin: '10px 0', padding: '10px', background: '#FF69B4', border: 'none', borderRadius: 8, color: '#fff', fontWeight: 'bold' }}>{opt.label}</button>
-          ))}
-          {loading && <p>Analyse en cours...</p>}
-        </>
-      )}
-      {result && (
-        <div style={{ background: '#fff', padding: 20, borderRadius: 10, marginTop: 20 }}>
-          <h2 style={{ color: '#FF69B4' }}>Votre diagnostic</h2>
-          <pre>{result}</pre>
-          <button onClick={restart} style={{ padding: '10px 20px', background: '#FFC0CB', border: 'none', borderRadius: 8, fontWeight: 'bold' }}>Recommencer</button>
-        </div>
-      )}
+    <div style={{ minHeight: '100vh', backgroundColor: '#fff', fontFamily: 'sans-serif', padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <nav style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', background: '#fff', borderBottom: '1px solid #eee' }}>
+        <div style={{ fontWeight: 'bold', fontSize: '1.5rem', color: '#FF69B4' }}>Leanail</div>
+        <Link href="/" style={{ color: '#000', textDecoration: 'none', fontWeight: 'bold' }}>Accueil</Link>
+      </nav>
+      <main style={{ maxWidth: 600, width: '100%', padding: '20px', background: '#fff5f9', borderRadius: 10, boxShadow: '0 0 10px rgba(0,0,0,0.05)' }}>
+        <h1 style={{ color: '#FF69B4' }}>Diagnostic Beauté Leanail</h1>
+        {step === -1 && !result && <button onClick={() => setStep(0)} style={{ padding: '12px 24px', background: '#FFC0CB', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>Commencer le quiz</button>}
+        {step >= 0 && !result && (
+          <>
+            <h3>{questions[step].icon} {questions[step].text}</h3>
+            {questions[step].options.map(opt => (
+              <button key={opt.value} onClick={() => handleAnswer(opt.value)} style={{ padding: '10px 20px', margin: '5px', background: '#FFC0CB', border: 'none', borderRadius: '8px', color: '#000', cursor: 'pointer', fontWeight: 'bold' }}>{opt.label}</button>
+            ))}
+            {loading && <p>Analyse en cours...</p>}
+          </>
+        )}
+        {result && (
+          <div>
+            <h2>Votre recommandation</h2>
+            <pre style={{ textAlign: 'left', whiteSpace: 'pre-wrap' }}>{result}</pre>
+            <button onClick={restart} style={{ marginTop: 20, padding: '10px 20px', background: '#FFC0CB', border: 'none', borderRadius: '8px', color: '#000', cursor: 'pointer', fontWeight: 'bold' }}>Recommencer</button>
+          </div>
+        )}
+      </main>
     </div>
   )
 }
