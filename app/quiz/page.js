@@ -1,10 +1,18 @@
-// app/quiz/page.js
 'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useAuth, RedirectToSignIn } from '@clerk/nextjs'
 
 export default function QuizIA() {
+  const { isLoaded, isSignedIn } = useAuth(); // Auth Clerk d'abord
+
+  const [step, setStep] = useState(-1);
+  const [userInfo, setUserInfo] = useState({ name: '', gender: '', email: '', phone: '', country: '', city: '', consent: false });
+  const [answers, setAnswers] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState('');
+
   const questions = [
     {
       key: 'structurel',
@@ -73,11 +81,10 @@ export default function QuizIA() {
     }
   ];
 
-  const [step, setStep] = useState(-1);
-  const [userInfo, setUserInfo] = useState({ name: '', gender: '', email: '', phone: '', country: '', city: '', consent: false });
-  const [answers, setAnswers] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState('');
+  // Redirection après initialisation des hooks
+  if (isLoaded && !isSignedIn) {
+    return <RedirectToSignIn redirectUrl="/quiz" />;
+  }
 
   const handleUserInfoChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -165,30 +172,8 @@ En te basant sur ces réponses :
     setResult('');
   };
 
-  const inputStyle = {
-    display: 'block',
-    width: '100%',
-    padding: '10px',
-    marginBottom: '12px',
-    border: '1px solid #ccc',
-    borderRadius: '6px',
-    fontSize: '1rem'
-  };
-
-  const buttonStyle = {
-    display: 'block',
-    width: '100%',
-    maxWidth: 500,
-    margin: '10px auto',
-    padding: '12px 20px',
-    borderRadius: 8,
-    border: '1px solid #FFC0CB',
-    background: '#FFC0CB',
-    color: '#000',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: 'bold'
-  };
+  const inputStyle = { display: 'block', width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '1rem' };
+  const buttonStyle = { display: 'block', width: '100%', maxWidth: 500, margin: '10px auto', padding: '12px 20px', borderRadius: 8, border: '1px solid #FFC0CB', background: '#FFC0CB', color: '#000', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' };
 
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: 'sans-serif', color: '#000' }}>
@@ -200,9 +185,11 @@ En te basant sur ces réponses :
         </nav>
       </header>
 
+      {/* Reste inchangé, conserve ton code existant pour afficher le quiz */}
       <main style={{ padding: 40 }}>
         {step === -1 && !result && (
           <div style={{ maxWidth: 500, margin: '0 auto', background: '#fff5f9', borderRadius: 10, padding: 30, boxShadow: '0 0 10px rgba(0,0,0,0.05)' }}>
+            {/* Formulaire */}
             <h2 style={{ marginBottom: 20, color: '#FF69B4' }}>📝 Formulaire de départ</h2>
             <input name="name" placeholder="Nom complet" value={userInfo.name} onChange={handleUserInfoChange} style={inputStyle} />
             <select name="gender" value={userInfo.gender} onChange={handleUserInfoChange} style={inputStyle}>
@@ -223,6 +210,7 @@ En te basant sur ces réponses :
           </div>
         )}
 
+        {/* Le reste du quiz et des résultats */}
         {step >= 0 && !result && (
           <>
             <h2 style={{ color: '#000', fontSize: '1.8rem', marginBottom: 20 }}>
@@ -230,13 +218,7 @@ En te basant sur ces réponses :
             </h2>
             <div style={{ marginTop: 10 }}>
               {questions[step].options.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => handleAnswer(opt.value)}
-                  style={buttonStyle}
-                >
-                  {opt.label}
-                </button>
+                <button key={opt.value} onClick={() => handleAnswer(opt.value)} style={buttonStyle}>{opt.label}</button>
               ))}
             </div>
             {loading && <p style={{ marginTop: 20 }}>Analyse en cours…</p>}
@@ -247,12 +229,7 @@ En te basant sur ces réponses :
           <div style={{ marginTop: 30, textAlign: 'center' }}>
             <h2 style={{ color: '#000000', fontSize: '1.8rem' }}>Votre recommandation personnalisée</h2>
             <div style={{ whiteSpace: 'pre-wrap', marginTop: 20 }}>{result}</div>
-            <button
-              onClick={restartQuiz}
-              style={buttonStyle}
-            >
-              Recommencer le diagnostic
-            </button>
+            <button onClick={restartQuiz} style={buttonStyle}>Recommencer le diagnostic</button>
           </div>
         )}
       </main>
