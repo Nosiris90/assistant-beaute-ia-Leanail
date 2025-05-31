@@ -126,6 +126,17 @@ export default function QuizIA() {
       <main style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
         <div style={{ maxWidth: 500, width: '100%', background: '#fff', borderRadius: 10, padding: 20, boxShadow: '0 0 10px rgba(0,0,0,0.1)', textAlign: 'center' }}>
           <h1 style={{ color: '#000', marginBottom: 20 }}>Diagnostic Leanail</h1>
+          
+          {/* 👉 Formulaire d'upload image vers Roboflow */}
+      <div style={{ margin: '20px auto', maxWidth: '400px', padding: '20px', border: '1px solid #FFC0CB', borderRadius: '10px', backgroundColor: '#fff5f9' }}>
+        <h3>📸 Détection d’ongles par image</h3>
+        <form method="POST" action="/api/roboflow-detect" encType="multipart/form-data">
+          <input type="file" name="file" accept="image/*" required style={{ marginBottom: '10px' }} />
+          <button type="submit" style={{ backgroundColor: '#FFC0CB', color: '#000', padding: '8px 12px', borderRadius: '8px', fontWeight: 'bold' }}>
+            Envoyer l’image
+          </button>
+        </form>
+      </div>
           {step === -1 && !result && <button onClick={() => setStep(0)} style={{ padding: '12px 24px', background: '#FFC0CB', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>Commencer</button>}
           {step >= 0 && !result && (
             <>
