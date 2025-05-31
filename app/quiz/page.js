@@ -15,6 +15,7 @@ export default function QuizIA() {
   const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
+  const [imageResult, setImageResult] = useState(null)
 
   const questions = [
     {
@@ -87,11 +88,7 @@ export default function QuizIA() {
   if (!isLoaded) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Chargement...</p>
   if (!isSignedIn) return <RedirectToSignIn redirectUrl="/quiz" />
   if (user && user.emailAddresses[0]?.verification?.status !== 'verified') {
-    return (
-      <div style={{ textAlign: 'center', marginTop: '100px', padding: 20 }}>
-        <p style={{ fontSize: '1.2rem', color: '#FF69B4' }}>🔒 Veuillez vérifier votre adresse email pour accéder au diagnostic.</p>
-      </div>
-    )
+    return <p style={{ textAlign: 'center', marginTop: '50px', color: '#FF69B4' }}>🔒 Veuillez vérifier votre email pour accéder au diagnostic.</p>
   }
 
   const handleAnswer = (value) => {
@@ -103,7 +100,7 @@ export default function QuizIA() {
 
   const generateRecommendation = async (allAnswers) => {
     setLoading(true)
-    const prompt = `Diagnostic Leanail pour ${user.fullName || user.username} (${user.emailAddresses[0]?.emailAddress}):\n${questions.map((q, i) => `Q${i + 1}: ${allAnswers[q.key] || 'Non répondu'}`).join('\n')}\nDiagnostic personnalisé et recommandations.`
+    const prompt = `Diagnostic Leanail pour ${user.fullName || user.username} (${user.emailAddresses[0]?.emailAddress}):\n${questions.map((q,i)=>`Q${i+1}: ${allAnswers[q.key] || 'Non répondu'}`).join('\n')}\nDiagnostic personnalisé et recommandations.`
     try {
       const res = await fetch('/api/gpt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, model: 'gpt-4-turbo' }) })
       const { recommendation } = await res.json()
@@ -116,28 +113,48 @@ export default function QuizIA() {
     }
   }
 
-  const restart = () => { setStep(-1); setAnswers({}); setResult('') }
+  const restart = () => { setStep(-1); setAnswers({}); setResult(''); setImageResult(null) }
+
+  const handleImageSubmit = async (e) => {
+    e.preventDefault()
+    const formData = new FormData(e.target)
+    try {
+      const res = await fetch('/api/roboflow-detect', { method: 'POST', body: formData })
+      const data = await res.json()
+      setImageResult(data)
+    } catch (err) {
+      console.error(err)
+      setImageResult({ error: 'Erreur lors de la détection' })
+    }
+  }
 
   return (
     <div className={poppins.className} style={{ backgroundColor: '#fff', color: '#000', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header style={{ padding: '1rem', borderBottom: '1px solid #eee', textAlign: 'center' }}>
-        <Link href="/" style={{ color: '#000', textDecoration: 'none', fontSize: '1.2rem', fontWeight: 'bold' }}>Leanail</Link>
+        <Link href="/" style={{ color: '#000', textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold' }}>Leanail</Link>
       </header>
+
       <main style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
         <div style={{ maxWidth: 500, width: '100%', background: '#fff', borderRadius: 10, padding: 20, boxShadow: '0 0 10px rgba(0,0,0,0.1)', textAlign: 'center' }}>
-          <h1 style={{ color: '#000', marginBottom: 20 }}>Diagnostic Leanail</h1>
-          
-          {/* 👉 Formulaire d'upload image vers Roboflow */}
-      <div style={{ margin: '20px auto', maxWidth: '400px', padding: '20px', border: '1px solid #FFC0CB', borderRadius: '10px', backgroundColor: '#fff5f9' }}>
-        <h3>📸 Détection d’ongles par image</h3>
-        <form method="POST" action="/api/roboflow-detect" encType="multipart/form-data">
-          <input type="file" name="file" accept="image/*" required style={{ marginBottom: '10px' }} />
-          <button type="submit" style={{ backgroundColor: '#FFC0CB', color: '#000', padding: '8px 12px', borderRadius: '8px', fontWeight: 'bold' }}>
-            Envoyer l’image
-          </button>
-        </form>
-      </div>
-          {step === -1 && !result && <button onClick={() => setStep(0)} style={{ padding: '12px 24px', background: '#FFC0CB', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>Commencer</button>}
+          <h1 style={{ marginBottom: 20 }}>Diagnostic Leanail</h1>
+
+          {/* 📸 Diagnostic par Image */}
+          <div style={{ marginBottom: 30 }}>
+            <h2 style={{ color: '#FF69B4', fontSize: '1.2rem', marginBottom: 10 }}>📸 Analyse Image</h2>
+            <form onSubmit={handleImageSubmit} encType="multipart/form-data" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <input type="file" name="file" accept="image/*" required style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }} />
+              <button type="submit" style={{ backgroundColor: '#FFC0CB', color: '#000', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>📤 Envoyer</button>
+            </form>
+            {imageResult && (
+              <div style={{ marginTop: 10, textAlign: 'left' }}>
+                <h4>Résultat Image :</h4>
+                <pre style={{ background: '#f5f5f5', padding: 10, borderRadius: 6 }}>{JSON.stringify(imageResult, null, 2)}</pre>
+              </div>
+            )}
+          </div>
+
+          {/* 📝 Quiz IA */}
+          {step === -1 && !result && <button onClick={() => setStep(0)} style={{ background: '#FFC0CB', padding: '12px 24px', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>Lancer le Quiz</button>}
           {step >= 0 && !result && (
             <>
               <h3>{questions[step].icon} {questions[step].text}</h3>
@@ -149,9 +166,9 @@ export default function QuizIA() {
           )}
           {result && (
             <div>
-              <h2>Résultat</h2>
-              <pre style={{ textAlign: 'left', whiteSpace: 'pre-wrap' }}>{result}</pre>
-              <button onClick={restart} style={{ marginTop: 20, padding: '12px 24px', background: '#FFC0CB', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>Recommencer</button>
+              <h2>Résultat Quiz</h2>
+              <pre style={{ textAlign: 'left', whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 10, borderRadius: 6 }}>{result}</pre>
+              <button onClick={restart} style={{ marginTop: 20, background: '#FFC0CB', padding: '12px 24px', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>Recommencer</button>
             </div>
           )}
         </div>
