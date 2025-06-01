@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useAuth, useUser, RedirectToSignIn } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Poppins } from 'next/font/google'
+import questions from '../questions'
 
 const poppins = Poppins({ subsets: ['latin'], weight: '400' })
 
@@ -11,84 +12,18 @@ export default function QuizIA() {
   const { isLoaded, isSignedIn } = useAuth()
   const { user } = useUser()
 
+  const [choice, setChoice] = useState(null)
   const [step, setStep] = useState(-1)
   const [answers, setAnswers] = useState({})
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
-  const [imageResult, setImageResult] = useState(null)
+  const [imageResult, setImageResult] = useState('')
+  const [error, setError] = useState('')
 
-  const questions = [
-    {
-      key: 'structurel',
-      text: "Q1. Rencontrez-vous des problèmes structurels ou de fragilité des ongles ?",
-      icon: "🧱",
-      options: [
-        { label: "Cassants", value: 'cassants' },
-        { label: "Mous / flexibles", value: 'mous' },
-        { label: "Secs / déshydratés", value: 'secs' },
-        { label: "Dédoublés", value: 'dedoubles' },
-        { label: "Striés verticalement", value: 'stries' },
-        { label: "Ongles fins / qui poussent lentement", value: 'fins' },
-        { label: "Non", value: 'non_structurel' }
-      ]
-    },
-    {
-      key: 'infectieux',
-      text: "Q2. Avez-vous remarqué un problème de type infectieux ou pathologique ?",
-      icon: "🦠",
-      options: [
-        { label: "Mycose", value: 'mycose' },
-        { label: "Bactérienne", value: 'bacterie' },
-        { label: "Incarnés", value: 'incarnes' },
-        { label: "Décollement", value: 'decollement' },
-        { label: "Psoriasis", value: 'psoriasis' },
-        { label: "Ligne de Beau", value: 'beau' },
-        { label: "Non", value: 'non_infectieux' }
-      ]
-    },
-    {
-      key: 'esthetique',
-      text: "Q3. Vos ongles présentent-ils un souci esthétique ?",
-      icon: "🎨",
-      options: [
-        { label: "Jaunis", value: 'jaunis' },
-        { label: "Taches blanches", value: 'blanches' },
-        { label: "Coloration", value: 'taches' },
-        { label: "Courts / rongés", value: 'ronges' },
-        { label: "Déformés", value: 'deformes' },
-        { label: "Non", value: 'non_esthetique' }
-      ]
-    },
-    {
-      key: 'habitudes',
-      text: "Q4. Vos habitudes ou votre environnement affectent-ils vos ongles ?",
-      icon: "☠️",
-      options: [
-        { label: "Rongement", value: 'rongement' },
-        { label: "Grattage", value: 'grattage' },
-        { label: "Contact eau/détergents", value: 'eau' },
-        { label: "Acétone", value: 'acetone' },
-        { label: "Faux ongles", value: 'faux_ongles' },
-        { label: "Non", value: 'non_habitudes' }
-      ]
-    },
-    {
-      key: 'autres',
-      text: "Q5. Avez-vous remarqué des signes inhabituels ?",
-      icon: "⚠️",
-      options: [
-        { label: "Bleutés", value: 'bleutes' },
-        { label: "Pâles", value: 'pales' },
-        { label: "Stries noires", value: 'stries_noires' },
-        { label: "Non", value: 'non_autres' }
-      ]
-    }
-  ]
-
-  if (!isLoaded) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Chargement...</p>
+  if (!isLoaded) return <p>Chargement...</p>
   if (!isSignedIn) return <RedirectToSignIn redirectUrl="/quiz" />
   if (user && user.emailAddresses[0]?.verification?.status !== 'verified') {
-    return <p style={{ textAlign: 'center', marginTop: '50px', color: '#FF69B4' }}>🔒 Veuillez vérifier votre email pour accéder au diagnostic.</p>
+    return <p style={{ textAlign: 'center', color: '#FF69B4', marginTop: 50 }}>🔒 Vérifiez votre email pour accéder au diagnostic.</p>
   }
 
   const handleAnswer = (value) => {
@@ -100,79 +35,117 @@ export default function QuizIA() {
 
   const generateRecommendation = async (allAnswers) => {
     setLoading(true)
-    const prompt = `Diagnostic Leanail pour ${user.fullName || user.username} (${user.emailAddresses[0]?.emailAddress}):\n${questions.map((q,i)=>`Q${i+1}: ${allAnswers[q.key] || 'Non répondu'}`).join('\n')}\nDiagnostic personnalisé et recommandations.`
+    setError('')
+    const prompt = `Diagnostic Leanail pour ${user.fullName || user.username} (${user.emailAddresses[0]?.emailAddress}):
+${questions.map((q, i) => `Q${i + 1}: ${allAnswers[q.key] || 'Non répondu'}`).join('\n')}
+Diagnostic personnalisé et recommandations.`
+
     try {
       const res = await fetch('/api/gpt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, model: 'gpt-4-turbo' }) })
       const { recommendation } = await res.json()
       setResult(recommendation)
     } catch (err) {
       console.error(err)
-      setResult("Erreur lors de la génération")
+      setError('Erreur lors du diagnostic')
     } finally {
       setLoading(false)
     }
   }
 
-  const restart = () => { setStep(-1); setAnswers({}); setResult(''); setImageResult(null) }
-
-  const handleImageSubmit = async (e) => {
+  const handleImageUpload = async (e) => {
     e.preventDefault()
-    const formData = new FormData(e.target)
+    setLoading(true)
+    setError('')
+    setImageResult('')
+    const file = e.target.file.files[0]
+    if (!file) {
+      setError("Aucune image sélectionnée")
+      setLoading(false)
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('upload_preset', 'leanail_preset')
+
     try {
-      const res = await fetch('/api/roboflow-detect', { method: 'POST', body: formData })
-      const data = await res.json()
-      setImageResult(data)
+      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/dzmzsgpus/image/upload`, { method: 'POST', body: formData })
+      const cloudData = await cloudRes.json()
+      if (cloudData.secure_url) {
+        const roboflowRes = await fetch('/api/roboflow-detect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: cloudData.secure_url })
+        })
+        const roboflowData = await roboflowRes.json()
+        if (roboflowData.predictions) {
+          setImageResult(`Résultat : ${JSON.stringify(roboflowData.predictions[0])}`)
+        } else {
+          setError('Erreur de détection')
+        }
+      } else {
+        setError('Erreur lors de l’upload Cloudinary')
+      }
     } catch (err) {
       console.error(err)
-      setImageResult({ error: 'Erreur lors de la détection' })
+      setError('Erreur lors du diagnostic image')
+    } finally {
+      setLoading(false)
     }
   }
 
+  const restart = () => {
+    setStep(-1)
+    setAnswers({})
+    setResult('')
+    setImageResult('')
+    setChoice(null)
+    setError('')
+  }
+
   return (
-    <div className={poppins.className} style={{ backgroundColor: '#fff', color: '#000', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <header style={{ padding: '1rem', borderBottom: '1px solid #eee', textAlign: 'center' }}>
-        <Link href="/" style={{ color: '#000', textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold' }}>Leanail</Link>
+    <div className={poppins.className} style={{ backgroundColor: '#fff', color: '#000', minHeight: '100vh', padding: '20px' }}>
+      <header style={{ textAlign: 'center', marginBottom: 20 }}>
+        <Link href="/" style={{ textDecoration: 'none', color: '#000', fontSize: '1.5rem', fontWeight: 'bold' }}>Leanail</Link>
       </header>
 
-      <main style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-        <div style={{ maxWidth: 500, width: '100%', background: '#fff', borderRadius: 10, padding: 20, boxShadow: '0 0 10px rgba(0,0,0,0.1)', textAlign: 'center' }}>
-          <h1 style={{ marginBottom: 20 }}>Diagnostic Leanail</h1>
+      {!choice && (
+        <div style={{ textAlign: 'center', marginBottom: 30 }}>
+          <h2>Choisissez votre méthode</h2>
+          <button onClick={() => setChoice('quiz')} style={{ margin: 10, padding: 10, background: '#FFC0CB', border: 'none', borderRadius: 8 }}>Quiz</button>
+          <button onClick={() => setChoice('image')} style={{ margin: 10, padding: 10, background: '#FFC0CB', border: 'none', borderRadius: 8 }}>Détection Image</button>
+        </div>
+      )}
 
-          {/* 📸 Diagnostic par Image */}
-          <div style={{ marginBottom: 30 }}>
-            <h2 style={{ color: '#FF69B4', fontSize: '1.2rem', marginBottom: 10 }}>📸 Analyse Image</h2>
-            <form onSubmit={handleImageSubmit} encType="multipart/form-data" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input type="file" name="file" accept="image/*" required style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }} />
-              <button type="submit" style={{ backgroundColor: '#FFC0CB', color: '#000', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>📤 Envoyer</button>
-            </form>
-            {imageResult && (
-              <div style={{ marginTop: 10, textAlign: 'left' }}>
-                <h4>Résultat Image :</h4>
-                <pre style={{ background: '#f5f5f5', padding: 10, borderRadius: 6 }}>{JSON.stringify(imageResult, null, 2)}</pre>
-              </div>
-            )}
-          </div>
-
-          {/* 📝 Quiz IA */}
-          {step === -1 && !result && <button onClick={() => setStep(0)} style={{ background: '#FFC0CB', padding: '12px 24px', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>Lancer le Quiz</button>}
+      {choice === 'quiz' && (
+        <div style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center' }}>
+          {step === -1 && !result && <button onClick={() => setStep(0)} style={{ padding: '10px 20px', background: '#FFC0CB', border: 'none', borderRadius: 8 }}>Démarrer le Quiz</button>}
           {step >= 0 && !result && (
             <>
               <h3>{questions[step].icon} {questions[step].text}</h3>
               {questions[step].options.map(opt => (
-                <button key={opt.value} onClick={() => handleAnswer(opt.value)} style={{ display: 'block', width: '100%', margin: '5px 0', padding: '10px', background: '#FFC0CB', border: 'none', borderRadius: '6px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>{opt.label}</button>
+                <button key={opt.value} onClick={() => handleAnswer(opt.value)} style={{ display: 'block', margin: '5px auto', padding: 10, background: '#FFC0CB', border: 'none', borderRadius: 6 }}>{opt.label}</button>
               ))}
-              {loading && <p>Analyse en cours...</p>}
             </>
           )}
-          {result && (
-            <div>
-              <h2>Résultat Quiz</h2>
-              <pre style={{ textAlign: 'left', whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 10, borderRadius: 6 }}>{result}</pre>
-              <button onClick={restart} style={{ marginTop: 20, background: '#FFC0CB', padding: '12px 24px', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>Recommencer</button>
-            </div>
-          )}
+          {loading && <p>Analyse en cours...</p>}
+          {result && <div><h4>Résultat</h4><pre>{result}</pre><button onClick={restart} style={{ marginTop: 10 }}>Recommencer</button></div>}
         </div>
-      </main>
+      )}
+
+      {choice === 'image' && (
+        <div style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center', background: '#fff5f9', padding: 20, borderRadius: 10 }}>
+          <h3>Diagnostic par Image</h3>
+          <form onSubmit={handleImageUpload}>
+            <input type="file" name="file" accept="image/*" required style={{ margin: '10px 0' }} />
+            <button type="submit" style={{ background: '#FFC0CB', border: 'none', padding: 10, borderRadius: 8 }}>Envoyer</button>
+          </form>
+          {loading && <p>Analyse image en cours...</p>}
+          {imageResult && <p>{imageResult}</p>}
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+          <button onClick={restart} style={{ marginTop: 10 }}>Recommencer</button>
+        </div>
+      )}
     </div>
   )
 }
