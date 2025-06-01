@@ -4,86 +4,106 @@ import { useState } from 'react'
 import { useUser, useAuth, RedirectToSignIn } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Lato } from 'next/font/google'
-import questions from '../questions' // ✅ Import corrigé
 
 const lato = Lato({ subsets: ['latin'], weight: '400' })
 
-export default function QuizPage() {
+export default function QuizIA() {
   const { isLoaded, isSignedIn } = useAuth()
   const { user } = useUser()
-
   const [step, setStep] = useState(-1)
   const [answers, setAnswers] = useState({})
-  const [result, setResult] = useState('')
   const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState('')
+  const [showChoice, setShowChoice] = useState(true)
+
+  const questions = [
+    { key: 'structurel', text: "Q1. Problèmes structurels ?", icon: "🧱", options: [ { label: "Cassants", value: 'cassants' }, { label: "Mous", value: 'mous' }, { label: "Secs", value: 'secs' }, { label: "Dédoublés", value: 'dedoubles' }, { label: "Striés", value: 'stries' }, { label: "Fins", value: 'fins' }, { label: "Non", value: 'non_structurel' } ] },
+    { key: 'infectieux', text: "Q2. Problèmes infectieux ?", icon: "🦠", options: [ { label: "Mycose", value: 'mycose' }, { label: "Bactérienne", value: 'bacterie' }, { label: "Incarnés", value: 'incarnes' }, { label: "Décollement", value: 'decollement' }, { label: "Psoriasis", value: 'psoriasis' }, { label: "Ligne de Beau", value: 'beau' }, { label: "Non", value: 'non_infectieux' } ] },
+    { key: 'esthetique', text: "Q3. Soucis esthétiques ?", icon: "🎨", options: [ { label: "Jaunis", value: 'jaunis' }, { label: "Taches blanches", value: 'blanches' }, { label: "Coloration", value: 'taches' }, { label: "Courts", value: 'courts' }, { label: "Déformés", value: 'deformes' }, { label: "Non", value: 'non_esthetique' } ] },
+    { key: 'habitudes', text: "Q4. Habitudes nocives ?", icon: "☠️", options: [ { label: "Rongement", value: 'rongement' }, { label: "Grattage", value: 'grattage' }, { label: "Eau", value: 'eau' }, { label: "Acétone", value: 'acetone' }, { label: "Faux ongles", value: 'faux_ongles' }, { label: "Non", value: 'non_habitudes' } ] },
+    { key: 'autres', text: "Q5. Autres signes ?", icon: "⚠️", options: [ { label: "Bleutés", value: 'bleutes' }, { label: "Pâles", value: 'pales' }, { label: "Stries noires", value: 'stries_noires' }, { label: "Non", value: 'non_autres' } ] },
+  ]
 
   if (!isLoaded) return <p>Chargement...</p>
   if (!isSignedIn) return <RedirectToSignIn redirectUrl="/quiz" />
-  if (user && user.emailAddresses[0]?.verification?.status !== 'verified') {
-    return (
-      <div style={{ textAlign: 'center', marginTop: '100px', padding: 20 }}>
-        <p style={{ fontSize: '1.2rem', color: '#FF69B4' }}>🔒 Veuillez vérifier votre adresse email pour accéder au diagnostic.</p>
-      </div>
-    )
+  if (user?.emailAddresses[0]?.verification?.status !== 'verified') {
+    return <p style={{ textAlign: 'center', color: '#FF69B4' }}>🔒 Vérifiez votre email pour accéder au diagnostic.</p>
   }
 
-  const handleAnswer = (value) => {
+  const handleAnswer = (val) => {
     const key = questions[step].key
-    setAnswers(prev => ({ ...prev, [key]: value }))
+    setAnswers(prev => ({ ...prev, [key]: val }))
     if (step + 1 < questions.length) setStep(step + 1)
-    else generateRecommendation({ ...answers, [key]: value })
+    else generateResult({ ...answers, [key]: val })
   }
 
-  const generateRecommendation = async (allAnswers) => {
+  const generateResult = async (data) => {
     setLoading(true)
+    const prompt = `Diagnostic pour ${user.fullName}: ${JSON.stringify(data)}`
     try {
-      const prompt = `Diagnostic Leanail pour ${user.fullName || user.username} (${user.emailAddresses[0]?.emailAddress}):
-${questions.map((q,i)=>`Q${i+1}: ${allAnswers[q.key] || 'Non répondu'}`).join('\n')}
-Fournis un diagnostic personnalisé et 3 recommandations.`
-
-      const res = await fetch('/api/gpt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, model: 'gpt-4-turbo' })
-      })
+      const res = await fetch('/api/gpt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) })
       const { recommendation } = await res.json()
-      setResult(recommendation)
+      setResult(recommendation || "Aucune recommandation générée.")
     } catch (err) {
-      console.error(err)
-      setResult("Erreur lors de la génération.")
+      setResult("Erreur lors du diagnostic.")
     } finally {
       setLoading(false)
     }
   }
 
-  const restart = () => { setStep(-1); setAnswers({}); setResult('') }
+  const restart = () => { setStep(-1); setAnswers({}); setResult(''); setShowChoice(true) }
 
   return (
-    <div className={lato.className} style={{ backgroundColor: '#fff', color: '#000', minHeight: '100vh', padding: 20 }}>
-      <header style={{ textAlign: 'center', padding: '1rem 0', borderBottom: '1px solid #eee' }}>
-        <Link href="/" style={{ textDecoration: 'none', fontWeight: 'bold', fontSize: '1.5rem', color: '#FF69B4' }}>Leanail</Link>
+    <div className={lato.className} style={{ background: '#fff', color: '#000', minHeight: '100vh', padding: '1rem' }}>
+      <header style={{ textAlign: 'center', marginBottom: '1rem' }}>
+        <Link href="/" style={{ color: '#000', textDecoration: 'none', fontWeight: 'bold' }}>🌸 Leanail 🌸</Link>
       </header>
-      <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', padding: 20 }}>
-        {!result && step === -1 && (
-          <button onClick={() => setStep(0)} style={{ padding: '12px 24px', background: '#FFC0CB', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>Commencer le diagnostic</button>
-        )}
-        {!result && step >= 0 && (
-          <div style={{ maxWidth: 500, width: '100%', textAlign: 'center' }}>
-            <h2>{questions[step].icon} {questions[step].text}</h2>
-            {questions[step].options.map(opt => (
-              <button key={opt.value} onClick={() => handleAnswer(opt.value)} style={{ display: 'block', width: '100%', margin: '5px 0', padding: '10px', background: '#FFC0CB', border: 'none', borderRadius: '6px', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>{opt.label}</button>
-            ))}
-            {loading && <p>Analyse en cours...</p>}
-          </div>
-        )}
-        {result && (
-          <div style={{ maxWidth: 600, width: '100%', textAlign: 'center', marginTop: 20 }}>
-            <h2>Votre recommandation personnalisée</h2>
-            <pre style={{ whiteSpace: 'pre-wrap', background: '#fff5f9', padding: 20, borderRadius: 8 }}>{result}</pre>
-            <button onClick={restart} style={{ padding: '10px 20px', background: '#FFC0CB', border: 'none', borderRadius: '8px', color: '#000', fontWeight: 'bold', marginTop: 20 }}>Recommencer</button>
-          </div>
-        )}
-      </main>
+
+      {showChoice && (
+        <div style={{ textAlign: 'center' }}>
+          <h2>Choisissez votre méthode</h2>
+          <button onClick={() => setShowChoice(false)} style={btnStyle}>📋 Quiz</button>
+          <form action="/api/roboflow-detect" method="POST" encType="multipart/form-data" style={{ marginTop: 10 }}>
+            <input type="file" name="file" required style={{ marginBottom: 8 }} />
+            <button type="submit" style={btnStyle}>📸 Détection Image</button>
+          </form>
+        </div>
+      )}
+
+      {!showChoice && (
+        <main style={{ maxWidth: 500, margin: '0 auto' }}>
+          {step === -1 && !result && <button onClick={() => setStep(0)} style={btnStyle}>Démarrer le Quiz</button>}
+          {step >= 0 && !result && (
+            <>
+              <h3>{questions[step].icon} {questions[step].text}</h3>
+              {questions[step].options.map(opt => (
+                <button key={opt.value} onClick={() => handleAnswer(opt.value)} style={btnStyle}>{opt.label}</button>
+              ))}
+              {loading && <p>Analyse en cours...</p>}
+            </>
+          )}
+          {result && (
+            <div style={{ textAlign: 'center', marginTop: 20 }}>
+              <h3 style={{ color: '#FF69B4' }}>🌸 Résultat 🌸</h3>
+              <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', textAlign: 'left', background: '#fff5f9', padding: '1rem', borderRadius: 8 }}>{result}</pre>
+              <button onClick={restart} style={btnStyle}>Recommencer</button>
+            </div>
+          )}
+        </main>
+      )}
     </div>
   )
+}
+
+const btnStyle = {
+  display: 'block',
+  width: '100%',
+  padding: '12px 20px',
+  margin: '10px 0',
+  background: '#FFC0CB',
+  border: 'none',
+  borderRadius: '8px',
+  color: '#000',
+  fontWeight: 'bold',
+  cursor: 'pointer'
 }

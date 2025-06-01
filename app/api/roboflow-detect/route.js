@@ -1,48 +1,48 @@
-import { v2 as cloudinary } from 'cloudinary'
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
+import { NextResponse } from 'next/server';
 
 export async function POST(req) {
   try {
-    const formData = await req.formData()
-    const file = formData.get('file')
+    const formData = await req.formData();
+    const file = formData.get("file");
     if (!file) {
-      return new Response(JSON.stringify({ error: 'Aucune image reçue.' }), { status: 400 })
+      return NextResponse.json({ error: "Aucune image fournie." }, { status: 400 });
     }
 
-    // Conversion en buffer
-    const buffer = await file.arrayBuffer()
-    const blob = new Blob([buffer])
+    // Cloudinary Upload
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
+    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-    // Upload vers Cloudinary
-    const uploadResult = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        { resource_type: 'image', folder: 'leanail_uploads' },
-        (error, result) => {
-          if (error) reject(error)
-          else resolve(result)
-        }
-      ).end(Buffer.from(buffer))
-    })
+    const cloudinaryForm = new FormData();
+    cloudinaryForm.append('file', new Blob([buffer]));
+    cloudinaryForm.append('upload_preset', uploadPreset);
 
-    const imageUrl = uploadResult.secure_url
+    const cloudRes = await fetch(cloudinaryUrl, { method: 'POST', body: cloudinaryForm });
+    const cloudData = await cloudRes.json();
 
-    // Appel API Roboflow
-    const roboflowUrl = `https://detect.roboflow.com/leanail-diagnostic-ongles/2?api_key=${process.env.ROBOFLOW_API_KEY}`
-    const response = await fetch(roboflowUrl, {
+    if (!cloudData.secure_url) {
+      return NextResponse.json({ error: "Échec de l'upload Cloudinary." }, { status: 500 });
+    }
+
+    // Roboflow Inference
+    const roboflowApiKey = process.env.ROBOFLOW_API_KEY;
+    const roboflowWorkflowUrl = `https://detect.roboflow.com/leanail-diagnostic-ongles/2?api_key=${roboflowApiKey}`;
+
+    const roboflowRes = await fetch(roboflowWorkflowUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: imageUrl })
-    })
-    const roboflowResult = await response.json()
+      body: JSON.stringify({ image: cloudData.secure_url })
+    });
 
-    return new Response(JSON.stringify({ cloudinary: imageUrl, roboflow: roboflowResult }), { status: 200 })
+    const roboflowResult = await roboflowRes.json();
+    if (!roboflowRes.ok) {
+      return NextResponse.json({ error: "Erreur Roboflow.", detail: roboflowResult }, { status: 500 });
+    }
+
+    return NextResponse.json({ predictions: roboflowResult.predictions || roboflowResult });
   } catch (error) {
-    console.error('Erreur Roboflow:', error)
-    return new Response(JSON.stringify({ error: error.message || 'Erreur inconnue' }), { status: 500 })
+    console.error(error);
+    return NextResponse.json({ error: "Erreur lors de l'analyse Roboflow.", message: error.message }, { status: 500 });
   }
 }
