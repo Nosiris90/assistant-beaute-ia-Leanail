@@ -1,21 +1,9 @@
-import { authMiddleware } from "@clerk/nextjs";
+// middleware.js
+import { clerkMiddleware } from '@clerk/nextjs/server';
 
-// Routes publiques autorisées sans authentification
-export default authMiddleware({
-  publicRoutes: [
-    '/',
-    '/quiz',
-    '/api/gpt',
-    '/api/email',
-    '/api/roboflow-detect',
-  ],
-})
+export default clerkMiddleware();
 
+// Active sur toutes les routes sauf assets
 export const config = {
-  matcher: [
-    '/((?!.*\\..*|_next).*)', // exclut les fichiers statiques
-    '/',                      // page d'accueil
-    '/quiz',                  // diagnostic quiz/image
-    '/api/:path*',            // APIs publiques autorisées
-  ],
-}
+  matcher: ['/((?!_next|.*\\..*).*)'],
+};

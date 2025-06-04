@@ -1,0 +1,105 @@
+/* 📁 Crée ce fichier dans : /app/quiz/quiz.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  font-family: 'Lato', sans-serif;
+  background: #fff0f5;
+  min-height: 100vh;
+}
+
+.choiceBox,
+.quizBox,
+.uploadBox {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 2rem;
+}
+
+h2, p {
+  font-weight: 700;
+  color: #ff69b4;
+  margin-bottom: 1rem;
+}
+
+select, input[type="file"] {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+button {
+  background-color: #ffc0cb;
+  color: black;
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+button:hover {
+  background-color: #ffb6c1;
+}
+
+.resultBox {
+  background: #fff;
+  border-left: 5px solid #ff69b4;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  max-width: 600px;
+  width: 100%;
+  white-space: pre-wrap;
+  font-size: 1rem;
+  font-family: 'Lato', sans-serif;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  color: #333;
+  line-height: 1.5;
+  background-image: linear-gradient(to top left, #fff, #fff8fc);
+}
+
+@media screen and (max-width: 480px) {
+  .container {
+    padding: 1rem;
+  }
+
+  button {
+    font-size: 1rem;
+  }
+
+  .quizBox,
+  .uploadBox,
+  .choiceBox,
+  .resultBox {
+    padding: 1.2rem;
+  }
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.resultBox {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+}
