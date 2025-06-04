@@ -1,35 +1,26 @@
-import { NextResponse } from 'next/server';
+// ==============================
+// ✅ /app/api/email/route.js
+// ==============================
+
+import { NextResponse } from 'next/server'
+import { Resend } from 'resend'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req) {
-  const { to, subject, message } = await req.json();
-
-  if (!to || !subject || !message) {
-    return NextResponse.json({ error: "Tous les champs sont requis." }, { status: 400 });
-  }
-
   try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'noreply@leanail.com',
-        to,
-        subject,
-        html: `<p>${message.replace(/\n/g, '<br>')}</p>`,
-      }),
-    });
+    const { email, content } = await req.json()
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      return NextResponse.json({ error: errorData.message || "Erreur d'envoi." }, { status: res.status });
-    }
+    await resend.emails.send({
+      from: 'Leanail <noreply@leanail.com>',
+      to: email,
+      subject: 'Votre diagnostic beauté Leanail',
+      html: `<div style="font-family:Lato,sans-serif;padding:20px">${content}</div>`,
+    })
 
-    return NextResponse.json({ success: true, message: "Email envoyé avec succès." });
+    return NextResponse.json({ status: 'ok' })
   } catch (error) {
-    console.error("Erreur envoi email:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+
