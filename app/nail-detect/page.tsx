@@ -1,65 +1,75 @@
+// /app/nail-detect/page.tsx
+
 'use client';
 
 import { useState } from 'react';
 import styles from '../quiz/quiz.module.css';
 
 export default function NailDetectPage() {
-  const [image, setImage] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
+    if (selectedFile) {
+      setImagePreview(URL.createObjectURL(selectedFile));
+    }
   };
 
-  const handleSubmit = async () => {
-    if (!image) return;
-    setLoading(true);
+  const handleUpload = async () => {
+    if (!file) return;
 
-    const response = await fetch('/api/diagnostic', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image })
-    });
+    const formData = new FormData();
+    formData.append('file', file);
 
-    const data = await response.json();
-    setResult(data.result || 'Aucune réponse');
-    setLoading(false);
+    try {
+      const res = await fetch('/api/roboflow', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data?.suggestions) {
+        setResult(data.suggestions);
+      } else {
+        setResult('❌ Aucun résultat reçu.');
+      }
+    } catch (error) {
+      setResult('❌ Une erreur est survenue lors de l’analyse.');
+    }
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.uploadBox}>
-        <h2 className={styles.title}>🖼️ Analyse photo des ongles</h2>
+        <h2 className={styles.title}>📷 Téléverser une photo de votre ongle</h2>
         <input
           type="file"
           accept="image/*"
-          onChange={handleImageChange}
+          onChange={handleFileChange}
           className={styles.fileInput}
         />
-        {image && <img src={image} alt="Aperçu" className={styles.previewImage} />}
-        <button
-          className={styles.button}
-          onClick={handleSubmit}
-          disabled={!image || loading}
-        >
-          {loading ? 'Analyse en cours...' : 'Lancer le diagnostic'}
+
+        {imagePreview && (
+          <img
+            src={imagePreview}
+            alt="Aperçu de l’image"
+            style={{ maxWidth: '100%', marginTop: '1rem', borderRadius: '12px' }}
+          />
+        )}
+
+        <button onClick={handleUpload} className={styles.button}>
+          🔍 Analyser l’image
         </button>
       </div>
+
       {result && (
         <div className={styles.resultBox}>
-          <h2 className={styles.title}>🎯 Résultat IA</h2>
+          <h3 className={styles.title}>🩺 Résultat du diagnostic</h3>
           <pre>{result}</pre>
-          <button className={styles.button} onClick={() => { setImage(null); setResult(null); }}>
-            Recommencer
-          </button>
         </div>
       )}
     </div>
