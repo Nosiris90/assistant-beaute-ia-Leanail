@@ -1,42 +1,31 @@
+// /app/quiz/page.tsx
+
 'use client';
 
-import { useState } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { RedirectToSignIn } from '@clerk/nextjs';
+import Link from 'next/link';
 import styles from './quiz.module.css';
-import { useRouter } from 'next/navigation';
 
-export default function Quiz() {
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const router = useRouter();
+export default function QuizPage() {
+  const { isLoaded, isSignedIn } = useAuth();
 
-  const handleOptionSelect = (option: string) => {
-    setSelectedOption(option);
-    // Redirection après sélection
-    if (option === 'quiz') {
-      router.push('/quiz/questions'); // adapt this to your actual quiz route
-    } else if (option === 'photo') {
-      router.push('/diagnostic/photo'); // adapt this to your actual diagnostic route
-    }
-  };
+  if (!isLoaded) return <p style={{ textAlign: 'center' }}>Chargement...</p>;
+  if (!isSignedIn) return <RedirectToSignIn redirectUrl="/quiz" />;
 
   return (
     <div className={styles.container}>
       <div className={styles.choiceBox}>
-        <h1 className={styles.title}>Bienvenue dans votre assistant beauté intelligent</h1>
-        <p className={styles.text}>Choisissez votre mode de diagnostic :</p>
-
-        <button
-          className={styles.button}
-          onClick={() => handleOptionSelect('quiz')}
-        >
-          Faire le quiz intelligent
-        </button>
-
-        <button
-          className={styles.button}
-          onClick={() => handleOptionSelect('photo')}
-        >
-          Télécharger une photo pour un diagnostic IA
-        </button>
+        <h2 className={styles.title}>Bienvenue sur le Diagnostic Beauté Leanail</h2>
+        <p className={styles.text}>
+          Choisissez votre mode de diagnostic intelligent :
+        </p>
+        <Link href="/quiz/questions">
+          <button className={styles.button}>🔍 Lancer le Quiz</button>
+        </Link>
+        <Link href="/nail-detect">
+          <button className={styles.button}>📸 Analyse par Photo</button>
+        </Link>
       </div>
     </div>
   );
